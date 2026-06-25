@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 from typing import Any
 
@@ -26,9 +27,33 @@ def filter_by_category(transactions: list[dict[str, Any]], category: str) -> lis
 
 def load_transactions_from_csv(csv_path: Path) -> list[dict[str, Any]]:
     """Load transactions from a CSV file and return them as dictionaries."""
-    pass
+    with csv_path.open(encoding="utf-8-sig", newline="") as csv_file:
+        reader = csv.DictReader(csv_file)
+        return [
+            {
+                "date": row["date"],
+                "type": row["type"],
+                "category": row["category"],
+                "description": row["description"],
+                "amount": int(row["amount"]),
+                "memo": row["memo"],
+            }
+            for row in reader
+        ]
 
 
 def monthly_summary(transactions: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
     """Summarize transactions by month."""
-    pass
+    summary: dict[str, dict[str, int]] = {}
+
+    for transaction in transactions:
+        month = str(transaction["date"])[:7]
+        amount = int(transaction["amount"])
+        month_summary = summary.setdefault(month, {"income": 0, "expense": 0, "net": 0})
+        if amount >= 0:
+            month_summary["income"] += amount
+        else:
+            month_summary["expense"] += amount
+        month_summary["net"] += amount
+
+    return summary

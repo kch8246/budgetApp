@@ -1,6 +1,14 @@
 """Tests for budget.core."""
 
-from budget.core import add_transaction, filter_by_category, get_balance
+from pathlib import Path
+
+from budget.core import (
+    add_transaction,
+    filter_by_category,
+    get_balance,
+    load_transactions_from_csv,
+    monthly_summary,
+)
 
 
 def test_add_transaction_increases_length() -> None:
@@ -270,3 +278,89 @@ def test_filter_by_category_returns_independent_result_list() -> None:
 
     assert len(transactions) == 1
     assert len(result) == 2
+
+
+def test_load_transactions_from_csv_reads_step1_data() -> None:
+    """CSV loading should parse step1 transactions into dictionaries."""
+    result = load_transactions_from_csv(Path("data/step1_transactions.csv"))
+
+    assert len(result) == 10
+    assert result[0]["date"] == "2026-01-05"
+    assert result[0]["type"] == "지출"
+    assert result[0]["category"] == "식비"
+    assert result[0]["description"] == "점심식사"
+    assert result[0]["amount"] == -12000
+    assert isinstance(result[0]["amount"], int)
+    assert result[1]["amount"] == 3500000
+    assert result[9]["memo"] == "중고마켓"
+
+
+def test_monthly_summary_groups_income_expense_and_net() -> None:
+    """Monthly summary should aggregate income, expense, and net by month."""
+    transactions = [
+        {
+            "date": "2025-01-02",
+            "type": "지출",
+            "category": "저축/투자",
+            "description": "펀드 투자",
+            "amount": -542738,
+            "memo": "",
+        },
+        {
+            "date": "2025-01-04",
+            "type": "수입",
+            "category": "기타수입",
+            "description": "환급금",
+            "amount": 405037,
+            "memo": "메모_53",
+        },
+        {
+            "date": "2025-01-31",
+            "type": "지출",
+            "category": "여행",
+            "description": "숙박비",
+            "amount": -1277935,
+            "memo": "현금",
+        },
+        {
+            "date": "2025-02-11",
+            "type": "수입",
+            "category": "급여",
+            "description": "월급",
+            "amount": 4995758,
+            "memo": "현금",
+        },
+        {
+            "date": "2025-02-24",
+            "type": "수입",
+            "category": "기타수입",
+            "description": "환급금",
+            "amount": 256099,
+            "memo": "메모_90",
+        },
+        {
+            "date": "2025-02-24",
+            "type": "지출",
+            "category": "문화/여가",
+            "description": "스포츠센터",
+            "amount": -40697,
+            "memo": "카드결제",
+        },
+    ]
+
+    result = monthly_summary(transactions)
+
+    assert result == {
+        "2025-01": {"income": 405037, "expense": -1820673, "net": -1415636},
+        "2025-02": {"income": 5251857, "expense": -40697, "net": 5211160},
+    }
+
+
+def test_monthly_summary_matches_step3_january_and_march_totals() -> None:
+    """Step 3 data should produce known month totals."""
+    transactions = load_transactions_from_csv(Path("data/step3_transactions.csv"))
+
+    result = monthly_summary(transactions)
+
+    assert result["2025-01"] == {"income": 405037, "expense": -2886860, "net": -2481823}
+    assert result["2025-03"] == {"income": 54659, "expense": -5602558, "net": -5547899}
