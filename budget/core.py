@@ -20,7 +20,8 @@ def get_balance(transactions: list[dict[str, Any]]) -> int:
 
 def filter_by_category(transactions: list[dict[str, Any]], category: str) -> list[dict[str, Any]]:
     """Return transactions that match the given category."""
-    pass
+    normalized_category = category.lower()
+    return [transaction for transaction in transactions if str(transaction["category"]).lower() == normalized_category]
 
 
 def load_transactions_from_csv(csv_path: Path) -> list[dict[str, Any]]:
