@@ -8,7 +8,7 @@ from typing import Any
 
 def add_transaction(transactions: list[dict[str, Any]], transaction: dict[str, Any]) -> list[dict[str, Any]]:
     """Add a transaction to the collection and return the updated list."""
-    pass
+    return [*transactions, dict(transaction)]
 
 
 def get_balance(transactions: list[dict[str, Any]]) -> int:
@@ -29,4 +29,3 @@ def load_transactions_from_csv(csv_path: Path) -> list[dict[str, Any]]:
 def monthly_summary(transactions: list[dict[str, Any]]) -> dict[str, dict[str, int]]:
     """Summarize transactions by month."""
     pass
-
