@@ -13,7 +13,9 @@ def add_transaction(transactions: list[dict[str, Any]], transaction: dict[str, A
 
 def get_balance(transactions: list[dict[str, Any]]) -> int:
     """Return the net balance computed from the transaction list."""
-    pass
+    if not transactions:
+        return 0.0
+    return sum(int(transaction["amount"]) for transaction in transactions)
 
 
 def filter_by_category(transactions: list[dict[str, Any]], category: str) -> list[dict[str, Any]]:
